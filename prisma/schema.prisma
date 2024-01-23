@@ -1,0 +1,41 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model ImportedSong {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  deezerId Int    @unique
+  title    String
+  duration Int
+  preview  String
+  md5Image String
+  artist   String
+  artistId Int
+  album    String
+  albumId  Int
+}
+
+model Artist {
+  iddb    String @id @default(auto()) @map("_id") @db.ObjectId
+  id      Int    @unique
+  name    String @unique
+  picture String
+  songs   String[]
+}
+
+model ImportedAlbum {
+  id     Int    @unique
+  iddb   String @id @default(auto()) @map("_id") @db.ObjectId
+  title  String @unique
+  artist String
+  cover  String
+  songs  String[]
+}
