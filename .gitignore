@@ -5,6 +5,7 @@ appunti.txt
 /.pnp
 .pnp.js
 .yarn/install-state.gz
+/backup
 
 # testing
 /coverage
