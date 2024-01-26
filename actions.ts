@@ -5,7 +5,6 @@ import prisma from "./prisma"
 import { ISong, IAlbum, IArtist, IPlaylist } from './types'
 
 
-
 function numberToObjectIdHex(value: number) {
     // Convert number to a hex string
     let hexString = value.toString(16)
@@ -18,12 +17,12 @@ function numberToObjectIdHex(value: number) {
 
 
 
-export const fetchTracks = async (): Promise<{playlists: IPlaylist[], songs: ISong[], artists: IArtist[], albums: IAlbum[] }> => {
+export const fetchTracks = async (): Promise<{ songs: ISong[], artists: IArtist[], albums: IAlbum[] }> => {
 
     const options = {
         method: 'GET',
-        url: `https://api.deezer.com/playlist/1807219322/tracks`,
-        
+        url: 'https://deezerdevs-deezer.p.rapidapi.com/search',
+        params: { q: 'mozart'  },
         headers: {
             'X-RapidAPI-Key': process.env.SECRET_KEY,
             'X-RapidAPI-Host': 'deezerdevs-deezer.p.rapidapi.com'
@@ -37,18 +36,11 @@ export const fetchTracks = async (): Promise<{playlists: IPlaylist[], songs: ISo
         const userString = "65b191b1450c3dff56f4b542";
         const userCreatorId = userString.toString()
 
-        response.data.data.forEach((data: object) => {  // Replace 'any' with the appropriate type for the item
-            const songId = numberToObjectIdHex(data.id);
-            const playlistId = numberToObjectIdHex(item.id);
+        response.data.data.forEach((item: any) => {  
+            const songId = numberToObjectIdHex(item.id);
+           
 
-            playlists.push({
-                id: playlistId,
-                playlistName: item.title,
-                thumbnail: item.album.cover_medium,         
-                userCreatorId: userCreatorId,
-                playlistSongs: [songId],                 
-            }),
-
+           
             songs.push({
                 id: songId,
                 name: item.tracks.data.title,
@@ -81,10 +73,10 @@ export const fetchTracks = async (): Promise<{playlists: IPlaylist[], songs: ISo
             }
         });
 
-        return { songs, artists, albums, playlists };
+        return { songs, artists, albums };
     } catch (error) {
         console.error(error);
-        return { songs: [], artists: [], albums: [], playlists: [] }
+        return { songs: [], artists: [], albums: [] }
     }
 };
 
@@ -104,41 +96,23 @@ export const addSong = async (data: ISong, selectedGenreId: string) => {
             url,
             duration,
             thumbnail,
-            isPublic: isPublic ?? true, 
+            isPublic: isPublic ?? true, // Default to true if isPublic is not provided
             UserCreator: {
                 connect: { id: userCreatorId },
             },
             Genre: {
                 connect: { id: selectedGenreId }
             },
-            ...(albumId && { Album: { connect: { id: albumId } } }), 
+            ...(albumId && { Album: { connect: { id: albumId } } }), // Connect to an album if albumId is provided
             Artist: {
-                connect: { id: artistId }
+                connect: { id: artistId } // Connect to the artist
+            },
 
-        },
-    },
- } );
-
-    return newSong;
-};
-
-export const addPlaylist = async (data: IPlaylist, selectedGenreId: string) => {
-    const { id, playlistName, thumbnail, userCreatorId, playlistSongs } = data;
-    const newPlaylist = await prisma.playlist.create({
-        data: {
-            id,
-            playlistName,
-            thumbnail,
-            UserCreator:{
-                connect : {id : userCreatorId}
-            },     
-            playlistSongs  
-            
         },
     });
 
-    return newPlaylist;
-}
+    return newSong;
+};
 
 
 
@@ -150,9 +124,6 @@ export const addArtist = async (data: IArtist) => {
             id,
             name,
             thumbnail,
-            Song: {
-                connect: { id: id }
-                      }
 
         },
     });
@@ -178,9 +149,6 @@ export const addAlbum = async (data: IAlbum, selectedGenreId: string) => {
             name,
             thumbnail,
             isPublic,
-            Song: {
-                connect: { id: id }
-            },
             UserCreator: {
                 connect: {
                     id: userCreatorId

@@ -9,7 +9,8 @@ interface SearchBarProps {
 
 export const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
     const [query, setQuery] = useState('');
-      
+   
+    
     const handleSearch = async () => {
         try {
             const response = await fetchTracks();

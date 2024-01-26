@@ -1,9 +1,9 @@
 'use client'
-import { useState, useEffect, ChangeEventHandler, ChangeEvent } from "react";
+import { useState, useEffect, ChangeEventHandler } from "react";
 import { ISong, IArtist, IAlbum, IPlaylist, MainEventAction } from '../../types';
-import { addAlbum, addArtist, addSong, addPlaylist, } from '../../actions';
+import { addAlbum, addArtist, addSong, fetchTracks } from '../../actions';
 import { SearchBar } from "./components/searchbar";
-// fetchTracks
+
 const genres = [
   { id: "65b1b95fe5f3c6d344bf0a3c", name: "Rock" },
   { id: "65b1b99ae5f3c6d344bf0a3e", name: "Pop" },
@@ -18,22 +18,20 @@ export default function Home() {
   const [playlists, setPlaylists]= useState<IPlaylist[]>([]);
   const [albums, setAlbums] = useState<IAlbum[]>([]); // Renamed to 'albums'
   const [selectedGenreId, setSelectedGenreId] = useState(genres[0].id);
-  const handleGenreChange = (event: ChangeEvent) => {
+  const handleGenreChange = (event: any) => {
   setSelectedGenreId(event.target.value);
   };
   
   useEffect(() => {
     const getTracks = async () => {
-      const { songs: fetchedSongs, artists: fetchedArtists, albums: fetchedAlbums, playlists: fetchedPlaylists } = await fetchTracks();
+      const { songs: fetchedSongs, artists: fetchedArtists, albums: fetchedAlbums, } = await fetchTracks();
       setSongs(fetchedSongs);
       setArtists(fetchedArtists);
       setAlbums(fetchedAlbums);
-      setPlaylists(fetchedPlaylists); 
-      
+     
     };
 
     getTracks();
-   
   }, []);
 
   const handleSong = (song: ISong, selectedGenreId: string) => {
@@ -76,19 +74,7 @@ export default function Home() {
       }
     })
   };
-const handlePlaylist = (playlist: IPlaylist) => {
-  addPlaylist(playlist, selectedGenreId);
-  setPlaylists(prevPlaylists => {
-    const index = prevPlaylists.findIndex(a => a.id === playlist.id);
-    if (index > -1) {
-      // Remove the playlist if it exists
-      return prevPlaylists.filter((_, i) => i !== index);
-    } else {
-      // Add the playlist if it doesn't exist
-      return [...prevPlaylists, playlist];
-    }
-  })
-}
+
   const getUniqueAlbums = (albums: IAlbum[]): IAlbum[] => {
     const uniquealbumIDs = new Set(albums.map(album => album.id));
     return albums.filter(album => uniquealbumIDs.has(album.id) && uniquealbumIDs.delete(album.id));
@@ -130,7 +116,7 @@ const handlePlaylist = (playlist: IPlaylist) => {
             <p className="p-6 rounded-xl bg-pink-200 text-white max-w-64 mb-9" onClick={() => handleArtist(artist)}> Artist: {artist.name} </p>
           </div>
         ))}       </div>
-        <span className=' text-purple-500 text-5xl' >Step 2 : Click on Album</span>
+        <span className='text-zinc-200 text-purple-500 text-5xl' >Step 2 : Click on Album</span>
         <div className="grid grid-cols-5 gap-x-12">
         {getUniqueAlbums(albums).map(album => (
           <div key={album.id}>
@@ -138,23 +124,18 @@ const handlePlaylist = (playlist: IPlaylist) => {
           </div>
         ))}
         </div>
-        <span className=' text-purple-500 text-5xl' >Step 3: Click on Song</span>
+        <span className='text-zinc-200 text-purple-500 text-5xl' >Step 3: Click on Song</span>
         <div className="grid grid-cols-5 gap-x-12">
       {songs.map(song => (     
           <p key={song.id}  className="p-6 rounded-xl bg-slate-500 text-white max-w-64 mb-9" onClick={() => handleSong(song, selectedGenreId)}>Song: {song.name}</p>
       
       ))}
-        <span className=' text-purple-500 text-5xl' >Step 4: Click on Playlist</span>
-        <div className="grid grid-cols-5 gap-x-12">
-      {playlists.map(play => (     
-        <p key={play.id} className="p-6 rounded-xl bg-slate-500 text-white max-w-64 mb-9" onClick={() => handlePlaylist(play)}>Playlist: {play.playlistName}</p>
-      
-      ))}
+    
 
    
     </div>
     </div>
     </div>
-    </div>
+  
   );
 }
