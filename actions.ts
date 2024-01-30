@@ -4,27 +4,21 @@ import axios from "axios"
 import prisma from "./prisma"
 import { ISong, IAlbum, IArtist, IPlaylist } from './types'
 
-
 function numberToObjectIdHex(value: number) {
-    // Convert number to a hex string
     let hexString = value.toString(16)
-
-    // Pad the hex string to 24 characters (12 bytes)
     hexString = hexString.padStart(24, '0')
-
     return hexString;
 }
 
 
 
 export const fetchTracks = async (): Promise<{ songs: ISong[], artists: IArtist[], albums: IAlbum[] }> => {
-
     const options = {
         method: 'GET',
         url: 'https://deezerdevs-deezer.p.rapidapi.com/search',
-        params: { q: 'mozart'  },
+        params: { q: 'giovanni allevi' },
         headers: {
-            'X-RapidAPI-Key': process.env.SECRET_KEY,
+            'X-RapidAPI-Key': '7e846162b0msh54cd57051f3a27ap1b6697jsn4f31de17e2a0',
             'X-RapidAPI-Host': 'deezerdevs-deezer.p.rapidapi.com'
         }
     };
@@ -35,54 +29,44 @@ export const fetchTracks = async (): Promise<{ songs: ISong[], artists: IArtist[
         const albums: IAlbum[] = [];
         const userString = "65b191b1450c3dff56f4b542";
         const userCreatorId = userString.toString()
-
-        response.data.data.forEach((item: any) => {  
+        response.data.data.forEach((item: any) => {
             const songId = numberToObjectIdHex(item.id);
-           
-
-           
             songs.push({
                 id: songId,
-                name: item.tracks.data.title,
-                url: item.tracks.data.preview,
-                duration: item.tracks.data.duration,
-                thumbnail: `https://e-cdn-images.dzcdn.net/images/cover/${item.tracks.data.md5_image}/500x500-000000-80-0-0.jpg`,
+                name: item.title,
+                url: item.preview,
+                duration: item.duration,
+                thumbnail: `https://e-cdn-images.dzcdn.net/images/cover/${item.md5_image}/500x500-000000-80-0-0.jpg`,
                 isPublic: true,
                 userCreatorId: userCreatorId,
-                genreId: numberToObjectIdHex(item.tracks.data.album.id),
-                albumId: numberToObjectIdHex(item.tracks.data.album.id),
-                artistId: numberToObjectIdHex(item.tracks.data.artist.id)
+                genreId: numberToObjectIdHex(item.album.id),
+                albumId: numberToObjectIdHex(item.album.id),
+                artistId: numberToObjectIdHex(item.artist.id),
             });
-
-            if (!artists.some(artist => artist.id === numberToObjectIdHex(item.tracks.data.artist.id))) {
+            if (!artists.some(artist => artist.id === numberToObjectIdHex(item.artist.id))) {
                 artists.push({
                     id: numberToObjectIdHex(item.artist.id),
-                    name: item.tracks.data.artist.name,
-                    thumbnail: item.tracks.data.artist.picture,
+                    name: item.artist.name,
+                    thumbnail: item.artist.picture,
                 });
             }
-
-            if (!albums.some(album => album.id === numberToObjectIdHex(item.tracks.data.album.id))) {
+            if (!albums.some(album => album.id === numberToObjectIdHex(item.album.id))) {
                 albums.push({
-                    id: numberToObjectIdHex(item.tracks.data.album.id),
-                    name: item.tracks.data.album.title,
-                    thumbnail: item.tracks.data.album.cover,
+                    id: numberToObjectIdHex(item.album.id),
+                    name: item.album.title,
+                    thumbnail: item.album.cover,
                     totalTracks: 1,
-                    artistId: numberToObjectIdHex(item.tracks.data.artist.id),
+                    artistId: numberToObjectIdHex(item.artist.id),
+
                 });
             }
         });
-
         return { songs, artists, albums };
     } catch (error) {
         console.error(error);
-        return { songs: [], artists: [], albums: [] }
+        return { songs: [], artists: [], albums: [] };
     }
 };
-
-
-
-
 
 
 export const addSong = async (data: ISong, selectedGenreId: string) => {
@@ -96,25 +80,22 @@ export const addSong = async (data: ISong, selectedGenreId: string) => {
             url,
             duration,
             thumbnail,
-            isPublic: isPublic ?? true, // Default to true if isPublic is not provided
+            isPublic: isPublic ?? true,
             UserCreator: {
                 connect: { id: userCreatorId },
             },
             Genre: {
                 connect: { id: selectedGenreId }
             },
-            ...(albumId && { Album: { connect: { id: albumId } } }), // Connect to an album if albumId is provided
+            ...(albumId && { Album: { connect: { id: albumId } } }),
             Artist: {
-                connect: { id: artistId } // Connect to the artist
+                connect: { id: artistId }
+            }
             },
-
-        },
-    });
+        });
 
     return newSong;
-};
-
-
+}
 
 export const addArtist = async (data: IArtist) => {
     const { id, name, thumbnail } = data;
@@ -123,11 +104,9 @@ export const addArtist = async (data: IArtist) => {
         data: {
             id,
             name,
-            thumbnail,
-
+            thumbnail
         },
     });
-
     return newArtist;
 };
 
@@ -138,12 +117,10 @@ export const addAlbum = async (data: IAlbum, selectedGenreId: string) => {
     const userExists = await prisma.user.findUnique({
         where: { id: userCreatorId },
     });
-
     if (!userExists) {
         throw new Error(`User with ID ${userCreatorId} not found`);
     }
     const newAlbum = await prisma.album.create({
-
         data: {
             id,
             name,
@@ -163,6 +140,5 @@ export const addAlbum = async (data: IAlbum, selectedGenreId: string) => {
 
         },
     });
-
     return newAlbum;
 };
