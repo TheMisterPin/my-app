@@ -18,7 +18,7 @@ export default function Home() {
  
   const [songs, setSongs] = useState<ISong[]>([]);
   const [artists, setArtists] = useState<IArtist[]>([]);
-  const [albums, setAlbums] = useState<IAlbum[]>([]); // Renamed to 'albums'
+  const [albums, setAlbums] = useState<IAlbum[]>([]); 
   const [selectedGenreId, setSelectedGenreId] = useState(genres[0].id);
   const handleGenreChange = (event: any) => {
   setSelectedGenreId(event.target.value);

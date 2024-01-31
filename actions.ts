@@ -16,7 +16,7 @@ export const fetchTracks = async (): Promise<{ songs: ISong[], artists: IArtist[
     const options = {
         method: 'GET',
         url: 'https://deezerdevs-deezer.p.rapidapi.com/search',
-        params: { q: 'giovanni allevi' },
+        params: { q: 'slipknots' },
         headers: {
             'X-RapidAPI-Key': '7e846162b0msh54cd57051f3a27ap1b6697jsn4f31de17e2a0',
             'X-RapidAPI-Host': 'deezerdevs-deezer.p.rapidapi.com'
@@ -27,7 +27,7 @@ export const fetchTracks = async (): Promise<{ songs: ISong[], artists: IArtist[
         const songs: ISong[] = [];
         const artists: IArtist[] = [];
         const albums: IAlbum[] = [];
-        const userString = "65b191b1450c3dff56f4b542";
+        const userString = "65b225682ecf5b6628278fb7";
         const userCreatorId = userString.toString()
         response.data.data.forEach((item: any) => {
             const songId = numberToObjectIdHex(item.id);
@@ -71,7 +71,7 @@ export const fetchTracks = async (): Promise<{ songs: ISong[], artists: IArtist[
 
 export const addSong = async (data: ISong, selectedGenreId: string) => {
     const { id, name, url, duration, thumbnail, genreId, isPublic, albumId, artistId } = data;
-    const userString = "65b191b1450c3dff56f4b542";
+    const userString = "65b225682ecf5b6628278fb7";
     const userCreatorId = userString.toString()
     const newSong = await prisma.song.create({
         data: {
@@ -113,7 +113,7 @@ export const addArtist = async (data: IArtist) => {
 
 export const addAlbum = async (data: IAlbum, selectedGenreId: string) => {
     const { id, name, thumbnail, isPublic, artistId } = data;
-    const userCreatorId = "65b191b1450c3dff56f4b542";
+    const userCreatorId = "65b225682ecf5b6628278fb7";
     const userExists = await prisma.user.findUnique({
         where: { id: userCreatorId },
     });
